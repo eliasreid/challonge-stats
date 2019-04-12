@@ -10,8 +10,27 @@ def calcEloChange(prevEloA, prevEloB, res, k):
 
     return k*(res - expectedA)
 
-#need to figure out more elegant way to handle credentials - can't open-source code right now due to this. 
+class Player:
+    
+    def __init__(self, tag):
+        self.tag = tag
+        self.currElo = 1200
+        self.prevElo = 1200
+        self.wins = 0
+        self.loses = 0
 
+
+    def updateElo(self, change):
+        self.currElo = self.currElo+change
+
+    def refreshElo(self):
+        self.prevElo=self.currElo
+
+
+
+
+# read credentials from file
+# should add some kind of error message if no file exists in folder
 with open("credentials.config") as f:
     user = f.readline().strip()
     key = f.readline().strip()
@@ -51,7 +70,8 @@ outfile = open("output.csv","w")
 prevElo = {}
 currElo = {}
 
-eloDefault=1200
+
+eloDefault=1200# wont need this, 1200 defined in object
 maxChange=32
 
 # need to iterate over tounrneys in seasons, then over 

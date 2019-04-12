@@ -17,22 +17,8 @@ with open("credentials.config") as f:
     key = f.readline().strip()
     challonge.set_credentials(user, key)
 
-#creating this tournament seems to work
-#tournament = challonge.tournaments.show("o1p1nelk")
-
-# works to get participants
-# print(challonge.participants.index(tournament["id"]))
-
-# Get latest tournament challonge.tournaments.index()[-1]
-
-
-# print("test 1: " + list.__str__(challonge.tournaments.index(created_after="2018-10-01")))
-            
-#'tournament_type'
-
-#read dat
-
-#real names on right (values)
+#keys: typos / alternate names
+#values: proper names
 aliases ={
     "Smithsyn": "SmithSyn",
     "Shleeepy": "Shleepy" ,
@@ -46,17 +32,19 @@ aliases ={
     "Dru-gatti": "Dru-Gatti"
 }
 
-#so this code returns a list of all of the tournaments. order - oldest to newest
-# challonge.tournaments.index(created_after="2018-10-01")
 
-# for now, just get all the data from a certain date
-
+# gets all of the tournaments from specified date range 
 season = challonge.tournaments.index(created_after="2019-01-01",include_matches=1) #date range should be configurable
 
 
 season = [t for t in season if t["tournament_type"]=="round robin"]
 
 outfile = open("output.csv","w")
+
+#SHOULD REFACTOR A BIT - MAKE OBJECT TO REPRESENT PLAYER
+# OBJECT CAN HAVE STATS LIKE WINS / LOSSES, ETC
+
+#First investigate why my stats arent the same as prev code i was using.. 
 
 #scores to contain names of players and their "current" elo scores (scores going into an event)
 # dictinary of name: score(float)
@@ -92,9 +80,19 @@ for event in season: #this should work because season is a list (iterable object
         # add player to score list if missing
         if name not in prevElo:
             prevElo[name] = eloDefault
+            currElo[name] = eloDefault
 
 
-    currElo = prevElo
+    #at this point in code, on first event, there is is a prev elo for all the players (1200), but no curr elo
+
+    #for incoming players, make curr Elo as well
+
+    #previous should become current
+    #curr elo is nothing, so dont wanna do this...
+    prevElo = currElo.copy()
+    #I think there's a problem with this adn the above elodefault piece
+
+
 
     #iterate over matches - calc elo scores for players
     for m in challonge.matches.index(eId):
@@ -106,7 +104,7 @@ for event in season: #this should work because season is a list (iterable object
         winner=IDtoPlayer[m["winner_id"]]
         loser=IDtoPlayer[m["loser_id"]]
 
-        outfile.write(winner+", "+ loser+"\n")
+        
 
         # print("winner Elo: " + str(prevElo[winner]))
         # print("loser Elo: " + str(prevElo[loser]))
@@ -116,10 +114,12 @@ for event in season: #this should work because season is a list (iterable object
         eloChange = calcEloChange(prevElo[winner], prevElo[loser],1,maxChange)
 
 
-        print("elochange: "+str(eloChange))
+        # print("elochange: "+str(eloChange))
 
         currElo[winner] +=eloChange
         currElo[loser] -= eloChange
+
+        outfile.write(winner + ", "+str(prevElo[winner]) + ", "+ loser + ", "+str(prevElo[loser]) + "\n")
 
     outfile.write("\n")
 
@@ -128,22 +128,4 @@ outfile.close()
 #not quite same result, could be due to corrections made to input.
 print(str(currElo))
 
-
-
-# if len(sys.argv) == 3:
-
-
-#     dataURL = "https://challonge.com/api/tournaments/" + sys.argv[1] + ".json?include_matches=1&include_participants=1&api_key=drV8xB1mess5varGdkbP43r5RmitLOWjyrYlsJTF"
-
-#     #this is required to avoid http 403 when retrieving data from url
-#     opener = urllib.request.build_opener()
-#     opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-#     urllib.request.install_opener(opener)
-
-#     #save json data to file
-#     r=urllib.request.urlretrieve(dataURL,sys.argv[2]+".json")
-
-
-
-#ok, now do Elo code stuff
 
